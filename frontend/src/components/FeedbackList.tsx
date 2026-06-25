@@ -11,15 +11,20 @@ interface FeedbackListProps {
   items: FeedbackItem[];
   onReview: (id: number) => void;
   loading?: boolean;
+  filtersActive?: boolean;
 }
 
-export function FeedbackList({ items, onReview, loading }: FeedbackListProps) {
+export function FeedbackList({ items, onReview, loading, filtersActive }: FeedbackListProps) {
   if (loading) {
     return <p className="muted">Loading feedback…</p>;
   }
 
   if (items.length === 0) {
-    return <p className="muted">No feedback items yet.</p>;
+    return (
+      <p className="muted">
+        {filtersActive ? "No feedback matches these filters." : "No feedback items yet."}
+      </p>
+    );
   }
 
   return (

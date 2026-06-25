@@ -2,7 +2,12 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas import FeedbackItemCreate
-from app.services import create_item, list_items, mark_reviewed
+from app.services import (
+    InvalidCategoryFilterError,
+    create_item,
+    list_items,
+    mark_reviewed,
+)
 
 
 def test_create_item(db_session):
@@ -35,6 +40,47 @@ def test_list_items_filters_by_status(db_session):
     assert len(list_items(db_session, status="all")) == 2
     assert len(list_items(db_session, status="new")) == 1
     assert len(list_items(db_session, status="reviewed")) == 1
+
+
+def test_list_items_filters_by_category(db_session):
+    create_item(
+        db_session,
+        FeedbackItemCreate(title="Bug A", body="Body A", category="bug"),
+    )
+    create_item(
+        db_session,
+        FeedbackItemCreate(title="Idea B", body="Body B", category="idea"),
+    )
+
+    assert len(list_items(db_session, category="all")) == 2
+    assert len(list_items(db_session, category="bug")) == 1
+    assert len(list_items(db_session, category="process")) == 0
+
+
+def test_list_items_composes_status_and_category(db_session):
+    create_item(
+        db_session,
+        FeedbackItemCreate(title="New bug", body="Body", category="bug"),
+    )
+    reviewed_bug = create_item(
+        db_session,
+        FeedbackItemCreate(title="Reviewed bug", body="Body", category="bug"),
+    )
+    mark_reviewed(db_session, reviewed_bug.id)
+    create_item(
+        db_session,
+        FeedbackItemCreate(title="New idea", body="Body", category="idea"),
+    )
+
+    result = list_items(db_session, status="new", category="bug")
+
+    assert len(result) == 1
+    assert result[0].title == "New bug"
+
+
+def test_list_items_rejects_invalid_category(db_session):
+    with pytest.raises(InvalidCategoryFilterError):
+        list_items(db_session, category="nonsense")
 
 
 def test_mark_reviewed(db_session):

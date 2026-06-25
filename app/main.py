@@ -5,9 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from app.db import get_db, init_db
-from app.schemas import FeedbackItemCreate, FeedbackItemRead, StatusFilter
+from app.schemas import (
+    CategoryFilter,
+    FeedbackItemCreate,
+    FeedbackItemRead,
+    StatusFilter,
+)
 from app.services import (
     InvalidCategoryError,
+    InvalidCategoryFilterError,
     InvalidStatusFilterError,
     ItemNotFoundError,
     create_item,
@@ -39,11 +45,12 @@ def on_startup() -> None:
 @app.get("/api/items", response_model=list[FeedbackItemRead])
 def get_items(
     status: StatusFilter = Query(default="all"),
+    category: CategoryFilter = Query(default="all"),
     db: Session = Depends(get_db),
 ) -> list[FeedbackItemRead]:
     try:
-        return list_items(db, status=status)
-    except InvalidStatusFilterError as exc:
+        return list_items(db, status=status, category=category)
+    except (InvalidStatusFilterError, InvalidCategoryFilterError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 

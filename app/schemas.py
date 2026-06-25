@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 Category = Literal["bug", "idea", "process", "other"]
 Status = Literal["new", "reviewed"]
 StatusFilter = Literal["new", "reviewed", "all"]
+CategoryFilter = Category | Literal["all"]
 
 
 class FeedbackItemCreate(BaseModel):

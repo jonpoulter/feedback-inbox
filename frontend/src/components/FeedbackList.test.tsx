@@ -35,6 +35,13 @@ describe("FeedbackList", () => {
     expect(screen.getByText("No feedback items yet.")).toBeInTheDocument();
   });
 
+  it("shows a filtered-empty message when filters are active and nothing matches", () => {
+    render(<FeedbackList items={[]} onReview={() => {}} filtersActive />);
+
+    expect(screen.getByText("No feedback matches these filters.")).toBeInTheDocument();
+    expect(screen.queryByText("No feedback items yet.")).toBeNull();
+  });
+
   it("renders item details with category and status badges", () => {
     render(<FeedbackList items={[newItem]} onReview={() => {}} />);
 

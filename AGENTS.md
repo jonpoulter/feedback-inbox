@@ -79,7 +79,7 @@ npm run dev
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/api/items` | List items (`?status=new\|reviewed\|all`) |
+| GET | `/api/items` | List items (`?status=new\|reviewed\|all`, `?category=bug\|idea\|process\|other\|all`; combined with AND) |
 | POST | `/api/items` | Create feedback |
 | POST | `/api/items/{id}/review` | Mark reviewed |
 

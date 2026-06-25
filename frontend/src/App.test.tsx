@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import App from "./App";
 import * as client from "./api/client";
@@ -33,7 +33,32 @@ describe("App", () => {
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "Slow export" })).toBeInTheDocument();
-    expect(listItemsMock).toHaveBeenCalledWith("all");
+    expect(listItemsMock).toHaveBeenCalledWith("all", "all");
+  });
+
+  it("reloads with the selected category when a category filter is chosen", async () => {
+    listItemsMock.mockResolvedValue([item]);
+
+    render(<App />);
+    await screen.findByRole("heading", { name: "Slow export" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Bug" }));
+
+    expect(listItemsMock).toHaveBeenLastCalledWith("all", "bug");
+  });
+
+  it("shows the filtered-empty message when an active filter matches nothing", async () => {
+    listItemsMock.mockResolvedValueOnce([item]).mockResolvedValue([]);
+
+    render(<App />);
+    await screen.findByRole("heading", { name: "Slow export" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Process" }));
+
+    expect(
+      await screen.findByText("No feedback matches these filters."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("No feedback items yet.")).toBeNull();
   });
 
   it("shows an error message when loading fails", async () => {

@@ -1,6 +1,7 @@
 export type Category = "bug" | "idea" | "process" | "other";
 export type Status = "new" | "reviewed";
 export type StatusFilter = "new" | "reviewed" | "all";
+export type CategoryFilter = Category | "all";
 
 export interface FeedbackItem {
   id: number;
@@ -41,8 +42,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function listItems(status: StatusFilter = "all"): Promise<FeedbackItem[]> {
-  return request<FeedbackItem[]>(`/api/items?status=${status}`);
+export function listItems(
+  status: StatusFilter = "all",
+  category: CategoryFilter = "all",
+): Promise<FeedbackItem[]> {
+  return request<FeedbackItem[]>(`/api/items?status=${status}&category=${category}`);
 }
 
 export function createItem(payload: FeedbackItemCreate): Promise<FeedbackItem> {

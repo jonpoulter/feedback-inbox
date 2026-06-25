@@ -43,7 +43,7 @@ describe("listItems", () => {
     const result = await listItems("new");
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `${BASE}/api/items?status=new`,
+      `${BASE}/api/items?status=new&category=all`,
       expect.objectContaining({
         headers: expect.objectContaining({ "Content-Type": "application/json" }),
       }),
@@ -51,12 +51,26 @@ describe("listItems", () => {
     expect(result).toEqual([item]);
   });
 
-  it("defaults to the 'all' filter", async () => {
+  it("defaults to the 'all' filter for both status and category", async () => {
     fetchMock.mockResolvedValue(makeResponse([]));
 
     await listItems();
 
-    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/api/items?status=all`, expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/api/items?status=all&category=all`,
+      expect.anything(),
+    );
+  });
+
+  it("includes the category param when provided", async () => {
+    fetchMock.mockResolvedValue(makeResponse([item]));
+
+    await listItems("all", "bug");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/api/items?status=all&category=bug`,
+      expect.anything(),
+    );
   });
 });
 

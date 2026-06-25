@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models import CATEGORIES, STATUSES, FeedbackItem
-from app.schemas import FeedbackItemCreate, StatusFilter
+from app.schemas import CategoryFilter, FeedbackItemCreate, StatusFilter
 
 
 class ItemNotFoundError(Exception):
@@ -16,13 +16,26 @@ class InvalidStatusFilterError(Exception):
     pass
 
 
-def list_items(db: Session, status: StatusFilter = "all") -> list[FeedbackItem]:
+class InvalidCategoryFilterError(Exception):
+    pass
+
+
+def list_items(
+    db: Session,
+    status: StatusFilter = "all",
+    category: CategoryFilter = "all",
+) -> list[FeedbackItem]:
     if status not in ("new", "reviewed", "all"):
         raise InvalidStatusFilterError(f"Invalid status filter: {status}")
+
+    if category not in (*CATEGORIES, "all"):
+        raise InvalidCategoryFilterError(f"Invalid category filter: {category}")
 
     query = db.query(FeedbackItem).order_by(FeedbackItem.created_at.desc())
     if status != "all":
         query = query.filter(FeedbackItem.status == status)
+    if category != "all":
+        query = query.filter(FeedbackItem.category == category)
     return query.all()
 
 
