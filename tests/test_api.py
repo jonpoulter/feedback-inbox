@@ -25,6 +25,55 @@ def test_create_and_list_item(client):
     assert len(list_response.json()) == 1
 
 
+def test_list_items_filters_by_category(client):
+    client.post(
+        "/api/items",
+        json={"title": "A bug", "body": "Body", "category": "bug"},
+    )
+    client.post(
+        "/api/items",
+        json={"title": "An idea", "body": "Body", "category": "idea"},
+    )
+
+    response = client.get("/api/items?category=bug")
+
+    assert response.status_code == 200
+    items = response.json()
+    assert len(items) == 1
+    assert items[0]["category"] == "bug"
+
+
+def test_list_items_invalid_category_returns_422(client):
+    response = client.get("/api/items?category=nonsense")
+
+    assert response.status_code == 422
+
+
+def test_list_items_composes_status_and_category(client):
+    client.post(
+        "/api/items",
+        json={"title": "New bug", "body": "Body", "category": "bug"},
+    )
+    reviewed = client.post(
+        "/api/items",
+        json={"title": "Reviewed bug", "body": "Body", "category": "bug"},
+    )
+    client.post(f"/api/items/{reviewed.json()['id']}/review")
+    client.post(
+        "/api/items",
+        json={"title": "New idea", "body": "Body", "category": "idea"},
+    )
+
+    response = client.get("/api/items?status=new&category=bug")
+
+    assert response.status_code == 200
+    items = response.json()
+    assert len(items) == 1
+    assert items[0]["title"] == "New bug"
+    assert items[0]["status"] == "new"
+    assert items[0]["category"] == "bug"
+
+
 def test_review_item(client):
     create_response = client.post(
         "/api/items",
