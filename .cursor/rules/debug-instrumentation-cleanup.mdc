@@ -1,0 +1,23 @@
+---
+description: Require removal of temporary debug instrumentation before work is complete
+alwaysApply: true
+---
+
+# Debug instrumentation cleanup
+
+When runtime debugging is required:
+
+1. Add targeted instrumentation first.
+2. Reproduce once, collect evidence, then fix with proof.
+3. Remove all debug-only changes before marking work complete.
+
+Debug-only artifacts that must not ship:
+
+- Session-specific debug headers (e.g. `X-Debug-Session-Id`)
+- Collapsible debug regions (e.g. `#region agent log` / `#endregion`)
+- Local-only ingest URLs or debug endpoints (e.g. `127.0.0.1:7487`, `localhost:7487`)
+- Temporary CSP or security relaxations added only for diagnostics
+
+If a debug exception must stay active, document it in the PR body and in `context/` with an expiry or follow-up task.
+
+The `block-debug-artifacts` hook blocks `git commit` when staged changes still contain known debug patterns. Customize patterns in `.cursor/hooks/block-debug-artifacts.sh` for your stack.

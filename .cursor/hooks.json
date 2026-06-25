@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/block-debug-artifacts.sh",
+        "matcher": "^git\\s+commit(\\s|$)",
+        "failClosed": true,
+        "timeout": 10
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/check-tests.sh",
+        "timeout": 180,
+        "loop_limit": 3
+      }
+    ]
+  }
+}

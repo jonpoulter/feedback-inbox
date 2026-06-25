@@ -1,0 +1,71 @@
+---
+description: Require project-feature-sdlc for new features and significant behavior changes
+alwaysApply: true
+---
+
+# Feature SDLC (required workflow)
+
+For **new features**, **behavior changes**, or **multi-file work**, invoke the **`project-feature-sdlc`** skill before implementation.
+
+**Skill:** [project-feature-sdlc/SKILL.md](../skills/project-feature-sdlc/SKILL.md)
+**Project context:** [AGENTS.md](../../AGENTS.md)
+
+> **Single source of truth:** Every skill named below is vendored in `.cursor/skills/` and auto-discovered. The rule says *what to run when*; the skills say *how*. Nothing here depends on a globally-installed plugin. Provenance is in [skills/ATTRIBUTION.md](../skills/ATTRIBUTION.md).
+
+## When this rule applies
+
+| Trigger | Action |
+|---------|--------|
+| User asks to build, add, or implement a feature | Start **Phase 1** (requirements); do not write production code first |
+| User says "SDLC", "spec first", or names `project-feature-sdlc` | Resume at the phase they indicate |
+| Obvious typo, comment-only, or single-line fix with no behavior change | SDLC optional — say why you're skipping |
+
+## Phase order (do not skip gates)
+
+1. **Spec** → user approves success criteria → `docs/features/YYYY-MM-DD-<feature>-spec.md`
+2. **Plan** → user approves dependencies and reuse → `docs/features/YYYY-MM-DD-<feature>-plan.md`
+3. **TDD** → failing tests for new behavior (RED) before production code
+4. **Execute** → plan tasks; all automated tests green
+5. **Smoke** → running app; checklist + evidence → `docs/features/…-smoke.md`
+6. **Code review** → architecture, security, bloat
+7. **Commits & PR** → atomic commits; human merges
+8. **Retro** → `context/retros/…` + `saving-workspace-context`
+
+**Hard gates:** No implementation before approved spec/plan; no "done" without passing tests and smoke where applicable.
+
+## Skills by phase
+
+Invoke the **Primary** skill to drive each phase. **Support** skills assist when their trigger applies. All resolve to `.cursor/skills/<name>/`.
+
+| Phase | Primary | Support (use when relevant) |
+|-------|---------|------------------------------|
+| 1 Spec | `project-feature-sdlc` | `brainstorming` (ambiguous/complex requirements) |
+| 2 Plan | `writing-plans` | `parallel-exploring` (large/unfamiliar codebase) |
+| 3 TDD | `test-driven-development` | `writing-tests` (pytest/Vitest structure, fixtures, conventions — not a substitute for RED-first TDD) |
+| 4 Execute | `subagent-driven-development` (independent tasks) **or** `grinding-until-pass` (small/coupled) | `finding-dev-server-url` |
+| 5 Smoke | `api-smoke-testing` · `verifying-in-browser` | `finding-dev-server-url` · `visual-qa-testing` · `recording-browser-flow-as-test` · `screenshotting-changelog` |
+| 6 Review | `parallel-code-review` | `auditing-security` |
+| 7 PR | `creating-pr` · `writing-commit-messages` | `babysitting-pr` · `parallel-ci-triage` · `screenshotting-changelog` |
+| 8 Retro | `saving-workspace-context` | `building-skills-from-patterns` · `suggesting-cursor-rules` |
+
+## Cross-cutting skills (any phase)
+
+| Skill | Use when |
+|-------|----------|
+| `systematic-debugging` | Any bug, test failure, or unexpected behavior — find root cause before fixing |
+| `verification-before-completion` | Before ANY completion/success claim or phase-gate advance |
+| `using-git-worktrees` | Work needs isolation from the current branch (typically before Phase 4) |
+| `saving-workspace-context` | **Continuously:** load `context/` at session start; append learnings to `context/<topic>.md` the moment they surface — don't defer to Phase 8 (Phase 8 only *consolidates* into `context/retros/…`) |
+
+## Invariant
+
+Every skill named in this rule MUST exist at `.cursor/skills/<name>/SKILL.md`. If you reference a new skill here, vendor it into the repo first — do not point at machine-global skills.
+
+## Git and PR
+
+- Only commit when the user asks.
+- Open PRs with `creating-pr` when the user asks.
+
+## Announce
+
+When starting feature work under this rule, say: *"Following project-feature-sdlc — starting Phase {N}."*
