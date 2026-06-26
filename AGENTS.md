@@ -113,7 +113,14 @@ Cross-stack features typically touch `app/` and `frontend/src/` — note both in
 - Lock files: `uv.lock`, `frontend/package-lock.json` (unless dependency change is intentional)
 - `frontend/.env.local` (machine-specific)
 
-## Production / release
+## Cursor Cloud specific instructions
+
+Standard setup/test/run commands live in **Local development** and **Testing** above; the notes below only cover Cloud-specific gotchas.
+
+- **Python interpreter:** Use `python3` (there is no `python` alias). The venv lives at `.venv/`; invoke tools as `.venv/bin/<tool>` (e.g. `.venv/bin/pytest`, `.venv/bin/ruff`, `.venv/bin/uvicorn`) without needing to `source` it.
+- **Frontend `.env` is optional:** `frontend/src/api/client.ts` defaults `VITE_API_BASE_URL` to `http://localhost:8000`, so the UI talks to the API even without `frontend/.env`.
+- **Two dev processes:** Run the API (`.venv/bin/uvicorn app.main:app --reload --port 8000`) and UI (`cd frontend && npm run dev`, serves on `:5173`) in separate long-lived terminals. Seed demo data with `.venv/bin/python scripts/seed.py` (writes `feedback.db` at repo root).
+- **Stop hook:** `.cursor/hooks/check-tests.sh` re-runs `pytest` and `npm test` when the agent stops and will ask you to keep fixing if either fails — keep both suites green before finishing.
 
 - **Approver:** Project owner (demo app — no production deploy)
 - **Build UI:** `cd frontend && npm run build` → `frontend/dist/`
