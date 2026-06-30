@@ -183,13 +183,13 @@ After Beat 8, `main` contains the agent's fix. Re-seed the demo bug on GitHub so
    ./scripts/reseed-demo-bug.sh --commit --push
    ```
 
-   Add `--pull` to fetch and pull before applying the patch. The script applies `scripts/patches/demo-bug-reseed.patch`, runs the crash test, and optionally commits and pushes.
+   Add `--pull` to fetch and pull before reseeding. The script runs `scripts/reseed_demo_bug.py` (intent-based transforms, not a git patch), runs `pytest`, and optionally commits and pushes. There is no pytest for the crash — verify via curl/UI below.
 
 3. **Verify bug is back:**
 
    | Check | Expected |
    |-------|----------|
-   | `pytest tests/test_api.py::test_stats_empty_filtered_set_crashes -v` | pass |
+   | `pytest` | all pass (CI green on broken `main` is OK — no crash test in suite) |
    | `curl -s -o /dev/null -w "%{http_code}" "http://localhost:8000/api/stats?status=reviewed"` | `500` (API running) |
 
 4. Run **Pre-demo reset** below before the live demo.
@@ -208,7 +208,6 @@ After Beat 8, `main` contains the agent's fix. Re-seed the demo bug on GitHub so
 | Agent can't reach Sentry | Cloud Agent MCP OAuth / network | Embed stack trace + permalink in Linear issue |
 | CI fails on agent PR | Missing test update or lint | Agent should run `pytest` before push |
 | `git status` says up to date but GitHub shows merged PR | Stale `origin/main` ref (no fetch since merge) | `git fetch origin` then `git pull origin main` |
-| `reseed-demo-bug.sh` patch fails to apply | Unrelated edits to `services.py` or test files | Regenerate patch: `git diff HEAD b0a7eb7 -- app/services.py tests/test_api.py tests/test_services.py > scripts/patches/demo-bug-reseed.patch` |
 
 ---
 

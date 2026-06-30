@@ -47,7 +47,7 @@ def get_stats(
     items = list_items(db, status=status, category=category)
     total = len(items)
     reviewed = sum(1 for item in items if item.status == "reviewed")
-    percent_reviewed = round(reviewed / total * 100) if total else 0
+    percent_reviewed = round(reviewed / total * 100)
     return {
         "total": total,
         "reviewed": reviewed,
