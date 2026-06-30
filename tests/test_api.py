@@ -108,3 +108,10 @@ def test_stats_returns_counts(client):
 
     assert response.status_code == 200
     assert response.json() == {"total": 2, "reviewed": 1, "percent_reviewed": 50}
+
+
+def test_stats_with_no_matching_items_returns_zero(client):
+    response = client.get("/api/stats?status=reviewed")
+
+    assert response.status_code == 200
+    assert response.json() == {"total": 0, "reviewed": 0, "percent_reviewed": 0}

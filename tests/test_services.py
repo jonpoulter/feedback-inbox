@@ -5,9 +5,16 @@ from app.schemas import FeedbackItemCreate
 from app.services import (
     InvalidCategoryFilterError,
     create_item,
+    get_stats,
     list_items,
     mark_reviewed,
 )
+
+
+def test_get_stats_empty_does_not_divide_by_zero(db_session):
+    stats = get_stats(db_session, status="reviewed")
+
+    assert stats == {"total": 0, "reviewed": 0, "percent_reviewed": 0}
 
 
 def test_create_item(db_session):
