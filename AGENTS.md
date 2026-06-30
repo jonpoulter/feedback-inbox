@@ -156,6 +156,7 @@ Cross-stack features typically touch `app/` and `frontend/src/` — note both in
 
 Standard setup/test/run commands live in **Local development** and **Testing** above; the notes below only cover Cloud-specific gotchas.
 
+- **Environment is Dockerfile-based:** `.cursor/environment.json` builds the base image from `.cursor/Dockerfile` (Ubuntu 24.04 + Python 3.12/`python3-venv`/pip + Node.js 22). `python3-venv` (ensurepip) lives in the base image because the stock image lacks it, which otherwise breaks `python3 -m venv .venv` on startup. System-level tooling changes go in `.cursor/Dockerfile`; per-startup dependency installs (pip/npm) stay in the `install` command.
 - **Python interpreter:** Use `python3` (there is no `python` alias). The venv lives at `.venv/`; invoke tools as `.venv/bin/<tool>` (e.g. `.venv/bin/pytest`, `.venv/bin/ruff`, `.venv/bin/uvicorn`) without needing to `source` it.
 - **Frontend `.env` is optional:** `frontend/src/api/client.ts` defaults `VITE_API_BASE_URL` to `http://localhost:8000`, so the UI talks to the API even without `frontend/.env`.
 - **Two dev processes:** Run the API (`.venv/bin/uvicorn app.main:app --reload --port 8000`) and UI (`cd frontend && npm run dev`, serves on `:5173`) in separate long-lived terminals. Seed demo data with `.venv/bin/python scripts/seed.py` (writes `feedback.db` at repo root).
