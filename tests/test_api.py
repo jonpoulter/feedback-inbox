@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_list_items_empty(client):
     response = client.get("/api/items")
 
@@ -113,11 +110,13 @@ def test_stats_returns_counts(client):
     assert response.json() == {"total": 2, "reviewed": 1, "percent_reviewed": 50}
 
 
-def test_stats_empty_filtered_set_crashes(client):
+def test_stats_empty_filtered_set_returns_zero_percent(client):
     client.post(
         "/api/items",
         json={"title": "Only new", "body": "Body", "category": "bug"},
     )
 
-    with pytest.raises(ZeroDivisionError):
-        client.get("/api/stats?status=reviewed")
+    response = client.get("/api/stats?status=reviewed")
+
+    assert response.status_code == 200
+    assert response.json() == {"total": 0, "reviewed": 0, "percent_reviewed": 0}
