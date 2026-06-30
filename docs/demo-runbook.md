@@ -151,9 +151,48 @@ Watch the Cloud Agent (dashboard or Linear updates):
 1. **Linear:** issue moves to **Done** (magic word `Fixes ENG-XXX` in PR).
 2. **Slack:** Linear app posts status update in channel.
 3. **Sentry:** resolve the issue (UI or MCP `update_issue`).
-4. **Product:** pull `main`, restart API, reset DB + seed, click **Reviewed** — should show `0% reviewed`, no error.
+4. **Product:** sync local `main`, restart API, reset DB + seed, click **Reviewed** — should show `0% reviewed`, no error.
+
+   ```bash
+   git fetch origin
+   git status   # compares to last-fetched origin/main — may say "up to date" even when GitHub is ahead
+   git pull origin main
+   ```
+
+   > **`git status` alone is misleading** after an agent merge — it does not contact GitHub until you `git fetch`. Always fetch first.
 
 **Talk track:** *"Ticket → telemetry → agent → PR → CI → review → merge → stakeholders notified."*
+
+---
+
+## Prepare for next demo run
+
+After Beat 8, `main` contains the agent's fix. Re-seed the demo bug on GitHub so the next Cloud Agent run can diagnose and fix it again.
+
+1. **Sync** (if not already done in Beat 8):
+
+   ```bash
+   git fetch origin && git pull origin main
+   ```
+
+   Confirm the fix: Reviewed filter → `0% reviewed`, no error.
+
+2. **Re-seed the bug** (deterministic script):
+
+   ```bash
+   ./scripts/reseed-demo-bug.sh --commit --push
+   ```
+
+   Add `--pull` to fetch and pull before applying the patch. The script applies `scripts/patches/demo-bug-reseed.patch`, runs the crash test, and optionally commits and pushes.
+
+3. **Verify bug is back:**
+
+   | Check | Expected |
+   |-------|----------|
+   | `pytest tests/test_api.py::test_stats_empty_filtered_set_crashes -v` | pass |
+   | `curl -s -o /dev/null -w "%{http_code}" "http://localhost:8000/api/stats?status=reviewed"` | `500` (API running) |
+
+4. Run **Pre-demo reset** below before the live demo.
 
 ---
 
@@ -168,6 +207,8 @@ Watch the Cloud Agent (dashboard or Linear updates):
 | Agent runs but no PR | GitHub not connected or wrong repo | Default repo or `[repo=...]` on issue |
 | Agent can't reach Sentry | Cloud Agent MCP OAuth / network | Embed stack trace + permalink in Linear issue |
 | CI fails on agent PR | Missing test update or lint | Agent should run `pytest` before push |
+| `git status` says up to date but GitHub shows merged PR | Stale `origin/main` ref (no fetch since merge) | `git fetch origin` then `git pull origin main` |
+| `reseed-demo-bug.sh` patch fails to apply | Unrelated edits to `services.py` or test files | Regenerate patch: `git diff HEAD b0a7eb7 -- app/services.py tests/test_api.py tests/test_services.py > scripts/patches/demo-bug-reseed.patch` |
 
 ---
 
@@ -176,3 +217,4 @@ Watch the Cloud Agent (dashboard or Linear updates):
 - Resolve or ignore test Sentry issues from rehearsal.
 - Close/delete throwaway Linear issues and test PRs.
 - Do **not** commit with `/debug/` routes or live DSN in tracked files.
+- Re-seed the demo bug for the next run (see **Prepare for next demo run** above).
