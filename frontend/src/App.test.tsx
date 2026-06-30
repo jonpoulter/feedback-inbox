@@ -7,11 +7,13 @@ import type { FeedbackItem } from "./api/client";
 
 vi.mock("./api/client", () => ({
   listItems: vi.fn(),
+  getStats: vi.fn(),
   createItem: vi.fn(),
   reviewItem: vi.fn(),
 }));
 
 const listItemsMock = vi.mocked(client.listItems);
+const getStatsMock = vi.mocked(client.getStats);
 
 const item: FeedbackItem = {
   id: 1,
@@ -24,6 +26,7 @@ const item: FeedbackItem = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getStatsMock.mockResolvedValue({ total: 1, reviewed: 0, percent_reviewed: 0 });
 });
 
 describe("App", () => {

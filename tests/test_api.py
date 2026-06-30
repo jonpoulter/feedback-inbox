@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_list_items_empty(client):
     response = client.get("/api/items")
 
@@ -91,3 +94,30 @@ def test_review_missing_item_returns_404(client):
     response = client.post("/api/items/999/review")
 
     assert response.status_code == 404
+
+
+def test_stats_returns_counts(client):
+    client.post(
+        "/api/items",
+        json={"title": "New bug", "body": "Body", "category": "bug"},
+    )
+    reviewed = client.post(
+        "/api/items",
+        json={"title": "Done bug", "body": "Body", "category": "bug"},
+    )
+    client.post(f"/api/items/{reviewed.json()['id']}/review")
+
+    response = client.get("/api/stats")
+
+    assert response.status_code == 200
+    assert response.json() == {"total": 2, "reviewed": 1, "percent_reviewed": 50}
+
+
+def test_stats_empty_filtered_set_crashes(client):
+    client.post(
+        "/api/items",
+        json={"title": "Only new", "body": "Body", "category": "bug"},
+    )
+
+    with pytest.raises(ZeroDivisionError):
+        client.get("/api/stats?status=reviewed")

@@ -18,6 +18,12 @@ export interface FeedbackItemCreate {
   category: Category;
 }
 
+export interface FeedbackStats {
+  total: number;
+  reviewed: number;
+  percent_reviewed: number;
+}
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
 
@@ -47,6 +53,13 @@ export function listItems(
   category: CategoryFilter = "all",
 ): Promise<FeedbackItem[]> {
   return request<FeedbackItem[]>(`/api/items?status=${status}&category=${category}`);
+}
+
+export function getStats(
+  status: StatusFilter = "all",
+  category: CategoryFilter = "all",
+): Promise<FeedbackStats> {
+  return request<FeedbackStats>(`/api/stats?status=${status}&category=${category}`);
 }
 
 export function createItem(payload: FeedbackItemCreate): Promise<FeedbackItem> {

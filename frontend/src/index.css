@@ -119,6 +119,18 @@ button:disabled {
   gap: 0.75rem;
 }
 
+.panel-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+}
+
+.stats-summary {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;

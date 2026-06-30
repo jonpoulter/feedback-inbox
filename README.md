@@ -19,7 +19,8 @@ pip install -e ".[dev]"
 
 python scripts/seed.py        # optional demo data
 
-uvicorn app.main:app --reload --port 8000
+cp .env.example .env          # optional: enable Sentry (set SENTRY_DSN)
+uvicorn app.main:app --reload --port 8000 --env-file .env
 
 # Frontend (separate terminal)
 cd frontend

@@ -31,3 +31,9 @@ class FeedbackItemRead(BaseModel):
     category: Category
     status: Status
     created_at: datetime
+
+
+class FeedbackStats(BaseModel):
+    total: int
+    reviewed: int
+    percent_reviewed: int

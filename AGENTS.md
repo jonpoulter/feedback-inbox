@@ -5,6 +5,7 @@
 - **What it is:** Internal team feedback inbox — submit items, list them, filter by status, mark as reviewed.
 - **Stack:** Python 3.11+ (FastAPI, SQLAlchemy, SQLite) + React 18 (Vite, TypeScript)
 - **Repository:** single repo (this directory); **two dev processes** (API + frontend)
+- **Observability:** Unhandled API errors are reported to Sentry when `SENTRY_DSN` is set (see env table). Cloud Agents should use Sentry MCP to investigate production issues (see Cursor Cloud section below).
 
 ## Local development
 
@@ -16,7 +17,13 @@ pip install -e ".[dev]"
 
 python scripts/seed.py        # optional demo data
 
+cp .env.example .env          # optional: configure Sentry (SENTRY_DSN)
+
+# Without telemetry (Sentry off):
 uvicorn app.main:app --reload --port 8000
+
+# With Sentry (loads SENTRY_DSN/SENTRY_ENVIRONMENT from .env):
+uvicorn app.main:app --reload --port 8000 --env-file .env
 
 # Frontend (separate terminal)
 cd frontend
@@ -31,6 +38,17 @@ npm run dev
 | **UI → API** | `VITE_API_BASE_URL` | Set in `frontend/.env` → `http://localhost:8000` |
 
 **Dev CORS:** FastAPI allows `http://localhost:5173` in development. Do not widen CORS for production without review.
+
+### Backend configuration (env vars)
+
+All backend env vars are optional and fall back to the defaults below. Copy `.env.example` → `.env` and load with `uvicorn ... --env-file .env`. The root `.env` is gitignored; never commit real secrets.
+
+| Variable | Default | Read in | Purpose |
+|----------|---------|---------|---------|
+| `DATABASE_URL` | `sqlite:///./feedback.db` | `app/db.py` | SQLAlchemy connection URL |
+| `CORS_ORIGINS` | `http://localhost:5173` | `app/main.py` | Comma-separated allowed CORS origins |
+| `SENTRY_DSN` | _(unset → Sentry off)_ | `app/main.py` | Sentry DSN; empty disables telemetry |
+| `SENTRY_ENVIRONMENT` | `demo` | `app/main.py` | Sentry environment tag |
 
 ## Testing
 
@@ -80,6 +98,7 @@ npm run dev
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/api/items` | List items (`?status=new\|reviewed\|all`, `?category=bug\|idea\|process\|other\|all`; combined with AND) |
+| GET | `/api/stats` | Inbox stats for current filters (`?status=…&category=…`, same as items list) |
 | POST | `/api/items` | Create feedback |
 | POST | `/api/items/{id}/review` | Mark reviewed |
 
@@ -90,6 +109,26 @@ Key paths:
 - `tests/` — backend pytest
 - `frontend/src/**/*.test.tsx` — frontend tests (if present)
 - `scripts/seed.py` — demo data
+
+## Cursor Cloud specific instructions
+
+When working on **production bugs** or issues that reference Sentry:
+
+1. **Diagnose with Sentry MCP** (connected via Cursor Integrations) before changing code:
+   - Use `search_issues` / issue details for project `feedback-inbox`.
+   - If the issue includes a Sentry permalink, start there.
+   - Use Seer (`analyze_issue_with_seer`) when root cause is unclear.
+   - This org uses EU Sentry (`de.sentry.io`) when a regional URL is required.
+
+2. **Fix expectations:**
+   - Reproduce from the stack trace and issue description; add or update tests for the failure mode.
+   - Run `pytest` (repo root) and `cd frontend && npm run test` before opening a PR.
+
+3. **Delivery:**
+   - Work on a branch; open a PR to `main` (do not push directly to `main`).
+   - PR description should include **`Fixes <Linear issue id>`** when closing a Linear ticket.
+
+4. **Do not** add debug-only routes or commit secrets (`SENTRY_DSN`, auth tokens).
 
 ## Cursor guardrails
 

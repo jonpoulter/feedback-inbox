@@ -39,6 +39,22 @@ def list_items(
     return query.all()
 
 
+def get_stats(
+    db: Session,
+    status: StatusFilter = "all",
+    category: CategoryFilter = "all",
+) -> dict[str, int]:
+    items = list_items(db, status=status, category=category)
+    total = len(items)
+    reviewed = sum(1 for item in items if item.status == "reviewed")
+    percent_reviewed = round(reviewed / total * 100)
+    return {
+        "total": total,
+        "reviewed": reviewed,
+        "percent_reviewed": percent_reviewed,
+    }
+
+
 def create_item(db: Session, payload: FeedbackItemCreate) -> FeedbackItem:
     if payload.category not in CATEGORIES:
         raise InvalidCategoryError(f"Invalid category: {payload.category}")

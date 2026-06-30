@@ -2,10 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 
 import {
   createItem,
+  getStats,
   listItems,
   reviewItem,
   type CategoryFilter,
   type FeedbackItem,
+  type FeedbackStats,
   type StatusFilter,
 } from "./api/client";
 import { CategoryFilterBar } from "./components/CategoryFilterBar";
@@ -15,6 +17,7 @@ import { StatusFilterBar } from "./components/StatusFilterBar";
 
 export default function App() {
   const [items, setItems] = useState<FeedbackItem[]>([]);
+  const [stats, setStats] = useState<FeedbackStats | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [loading, setLoading] = useState(true);
@@ -25,9 +28,15 @@ export default function App() {
       setLoading(true);
       setError(null);
       try {
-        setItems(await listItems(status, category));
+        const [nextItems, nextStats] = await Promise.all([
+          listItems(status, category),
+          getStats(status, category),
+        ]);
+        setItems(nextItems);
+        setStats(nextStats);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load feedback.");
+        setStats(null);
       } finally {
         setLoading(false);
       }
@@ -70,7 +79,12 @@ export default function App() {
 
         <section className="inbox-panel">
           <div className="panel-header">
-            <h2>Inbox</h2>
+            <div className="panel-title-row">
+              <h2>Inbox</h2>
+              {stats && (
+                <p className="muted stats-summary">{stats.percent_reviewed}% reviewed</p>
+              )}
+            </div>
             <div className="filters">
               <StatusFilterBar value={statusFilter} onChange={setStatusFilter} />
               <CategoryFilterBar value={categoryFilter} onChange={setCategoryFilter} />
