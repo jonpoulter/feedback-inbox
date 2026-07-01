@@ -93,6 +93,25 @@ def test_review_missing_item_returns_404(client):
     assert response.status_code == 404
 
 
+def test_stats_empty_inbox_returns_zero_percent(client):
+    response = client.get("/api/stats")
+
+    assert response.status_code == 200
+    assert response.json() == {"total": 0, "reviewed": 0, "percent_reviewed": 0}
+
+
+def test_stats_reviewed_filter_with_no_reviewed_items(client):
+    client.post(
+        "/api/items",
+        json={"title": "New bug", "body": "Body", "category": "bug"},
+    )
+
+    response = client.get("/api/stats?status=reviewed")
+
+    assert response.status_code == 200
+    assert response.json() == {"total": 0, "reviewed": 0, "percent_reviewed": 0}
+
+
 def test_stats_returns_counts(client):
     client.post(
         "/api/items",

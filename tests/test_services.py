@@ -5,6 +5,7 @@ from app.schemas import FeedbackItemCreate
 from app.services import (
     InvalidCategoryFilterError,
     create_item,
+    get_stats,
     list_items,
     mark_reviewed,
 )
@@ -92,6 +93,23 @@ def test_mark_reviewed(db_session):
     updated = mark_reviewed(db_session, item.id)
 
     assert updated.status == "reviewed"
+
+
+def test_get_stats_empty_inbox_does_not_divide_by_zero(db_session):
+    stats = get_stats(db_session)
+
+    assert stats == {"total": 0, "reviewed": 0, "percent_reviewed": 0}
+
+
+def test_get_stats_reviewed_filter_with_no_reviewed_items(db_session):
+    create_item(
+        db_session,
+        FeedbackItemCreate(title="A", body="Body A", category="idea"),
+    )
+
+    stats = get_stats(db_session, status="reviewed")
+
+    assert stats == {"total": 0, "reviewed": 0, "percent_reviewed": 0}
 
 
 def test_create_item_rejects_whitespace_only_fields():
