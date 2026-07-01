@@ -23,22 +23,26 @@ AGENT_API_TESTS = (
     "test_stats_empty_filtered_set_returns_zero_percent",
     "test_list_and_stats_reviewed_filter_with_no_reviewed_items",
     "test_stats_empty_filtered_set_crashes",
+    "test_stats_with_no_matching_items_returns_zero",
 )
 
 AGENT_SERVICE_TESTS = (
     "test_get_stats_counts_reviewed",
     "test_get_stats_empty_set_returns_zero_percent",
     "test_get_stats_reviewed_filter_with_no_matches",
+    "test_get_stats_empty_does_not_divide_by_zero",
 )
 
 
 def is_already_reseeded() -> bool:
     services = SERVICES.read_text()
     api = TEST_API.read_text()
+    test_services = TEST_SERVICES.read_text()
     return (
         UNGUARDED in services
         and GUARDED not in services
         and not any(f"def {name}" in api for name in AGENT_API_TESTS)
+        and not any(f"def {name}" in test_services for name in AGENT_SERVICE_TESTS)
         and "ZeroDivisionError" not in api
     )
 
